@@ -113,7 +113,7 @@ export default function Page() {
         };
 
         fetchLocations();
-        const interval = setInterval(fetchLocations, 5000);
+        const interval = setInterval(fetchLocations, 300000); // 5 minutes
         return () => clearInterval(interval);
     }, []);
 
