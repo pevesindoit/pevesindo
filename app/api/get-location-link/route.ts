@@ -1,52 +1,55 @@
+// app/api/resolve-location/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const url = body.url;
-  console.log("coba", url);
+  const alamat = body.url;
 
-  if (!url || typeof url !== "string") {
-    return NextResponse.json({ error: "Missing URL" }, { status: 400 });
+  if (!alamat || typeof alamat !== "string") {
+    return NextResponse.json({ error: "Missing address" }, { status: 400 });
   }
 
   try {
-    // Use GET so we follow the actual redirect to the real maps URL
-    const response = await fetch(url, {
-      method: "GET",
-      redirect: "follow",
-    });
+    const geocoded = await fetchGeocode(alamat);
+    if (geocoded) {
+      return NextResponse.json({
+        lat: geocoded.lat,
+        lng: geocoded.lng,
+        method: "from-geocode",
+      });
+    }
 
-    console.log("ini responsnya", response);
-
-    const finalUrl = response.url;
-
-    // Try to extract @lat,lng from finalUrl
-    const coords = extractLatLngFromUrl(finalUrl);
-
-    return NextResponse.json({
-      finalUrl,
-      lat: coords?.lat ?? null,
-      lng: coords?.lng ?? null,
-    });
-  } catch (error) {
-    console.error("Resolve link error:", error);
     return NextResponse.json(
-      { error: "Failed to resolve link" },
+      { error: "Coordinates not found" },
+      { status: 404 }
+    );
+  } catch (error) {
+    console.error("Geocoding error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch geocode data" },
       { status: 500 }
     );
   }
 }
 
-// helper function inside this file
-function extractLatLngFromUrl(
-  url: string
-): { lat: number; lng: number } | null {
-  const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (match) {
-    return {
-      lat: parseFloat(match[1]),
-      lng: parseFloat(match[2]),
-    };
+async function fetchGeocode(
+  address: string
+): Promise<{ lat: number; lng: number } | null> {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  const cleaned = address.replace(/\n/g, ", "); // Replace newlines with commas
+  const encoded = encodeURIComponent(cleaned);
+
+  const res = await fetch(
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${apiKey}`
+  );
+  const data = await res.json();
+
+  if (data.status !== "OK") {
+    console.warn("Google Maps API error:", data.status, data.error_message);
+    return null;
   }
+
+  const loc = data?.results?.[0]?.geometry?.location;
+  if (loc) return { lat: loc.lat, lng: loc.lng };
   return null;
 }

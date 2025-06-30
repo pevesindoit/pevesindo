@@ -5,15 +5,23 @@ import dynamic from 'next/dynamic';
 import { IPengantaran } from '@/types/pengantaran.type';
 import supabase from '@/lib/db';
 import { usePathname, useRouter } from 'next/navigation';
+import { getLink } from '@/app/fetch/get/fetch';
 
 const MapLeaflet = dynamic(() => import('../../component/MapLeaflet'), {
     ssr: false,
 });
 
+type DropOff = {
+    id: number;
+    lat: number;
+    lng: number;
+    label: string;
+};
+
 export default function Page() {
     const [drivers, setDrivers] = useState<{ id: string; lat: number; lng: number }[]>([]);
     const [dropOffs, setDropOffs] = useState<{ id: number; lat: number; lng: number; label: string }[]>([]);
-    const [data, setData] = useState<IPengantaran[]>([]);
+    const [data, setData] = useState<any[]>([]);
     const [page, setPage] = useState(1);
     const itemsPerPage = 5;
     const [cabang, setCabang] = useState<string | null>(() => {
@@ -22,6 +30,7 @@ export default function Page() {
         }
         return null;
     });
+    const [mockDropOffs, setMockDropOffs] = useState<DropOff[]>([]);
     const path = usePathname()
     const route = useRouter()
 
@@ -41,13 +50,8 @@ export default function Page() {
 
         const { data, error } = await supabase
             .from("surat_jalan")
-            .select(`*, products(
-                id,
-                nama_barang,
-                kode_barang,
-                jumlah_item,
-                ket_nama)`)
-            .eq("tanggal_pengantaran", today)
+            .select(`link_alamat, order_id, alamat`)
+            // .eq("tanggal_pengantaran", today)
             .eq("cabang", cabang)
             .neq("status", "Selesai Pengantaran")
             .order("order_id", { ascending: true })
@@ -114,13 +118,63 @@ export default function Page() {
     }, []);
 
     useEffect(() => {
-        // Dummy geolocation fallback using hardcoded dropOffs
-        const mockDropOffs = [
-            { id: 3, lat: -5.123344, lng: 119.492241, label: "Drop at Pevesindo Baddoka" },
-            { id: 4, lat: -5.171842, lng: 119.417389, label: "Drop at Barabarayya, Makassar" }
-        ];
         setDropOffs(mockDropOffs);
+    }, [mockDropOffs]);
+
+    // useEffect(() => {
+    //     // Dummy geolocation fallback using hardcoded dropOffs
+    //     const mockDropOffs = [
+    //         { id: 3, lat: -5.123344, lng: 119.492241, label: "Drop at Pevesindo Baddoka" },
+    //         { id: 4, lat: -5.171842, lng: 119.417389, label: "Drop at Barabarayya, Makassar" }
+    //     ];
+    //     setDropOffs(mockDropOffs);
+    // }, [data]);
+
+    const extractLatLngFromUrl = (url: string): { lat: number; lng: number } | null => {
+        const match = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (match) {
+            return {
+                lat: parseFloat(match[1]),
+                lng: parseFloat(match[2]),
+            };
+        }
+        return null;
+    };
+
+    useEffect(() => {
+        const fetchLangtitude = async () => {
+            try {
+                const rawLinks = data;
+                const dropOffs: DropOff[] = [];
+
+                for (const item of rawLinks) {
+                    if (!item.alamat) continue;
+
+                    const res = await getLink({ url: item.alamat }); // Your geocode API call
+                    console.log("inimi", res);
+
+                    const coords = res?.data;
+                    if (!coords?.lat || !coords?.lng) continue;
+
+                    dropOffs.push({
+                        id: item.order_id,
+                        lat: coords.lat,
+                        lng: coords.lng,
+                        label: `Drop at Order ${item.order_id}`,
+                    });
+                }
+
+                setMockDropOffs(dropOffs);
+            } catch (error) {
+                console.error("Error resolving links", error);
+            }
+        };
+
+        if (data.length > 0) {
+            fetchLangtitude();
+        }
     }, [data]);
+
 
     const changePage = (e: any) => {
         if (e === "pengantaran") {
@@ -129,6 +183,8 @@ export default function Page() {
             route.push("/atur-pengantaran/mutasi")
         }
     }
+
+    console.log(dropOffs)
 
     return (
         <div className="py-[2rem]">
