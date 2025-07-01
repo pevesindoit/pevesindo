@@ -27,8 +27,65 @@ export async function POST(req: NextRequest) {
       }
 
       if (existing) {
-        // console.log(`⚠️ Skipping duplicate id_mutasi: ${itemId}`);
-        continue;
+        const getDetail = await fetchMutationsDetail(itemId);
+        const detail = getDetail?.d;
+
+        if (!detail || !Array.isArray(detail.detailItem)) {
+          continue;
+        }
+
+        const detailMutasi = detail.detailItem;
+        const warehouseToCabangMap: Record<string, string> = {
+          "GOOD STOCK - BADDOKA": "PEVESINDO CABANG BADDOKA",
+          "GOOD STOCK - HERTASNING": "PEVESINDO CABANG HERTASNING",
+          "GOOD STOCK - PARE-PARE": "PEVESINDO CABANG PARE-PARE",
+          "GOOD STOCK - BONE": "PEVESINDO CABANG BONE",
+          "GOOD STOCK - JOGJA": "PEVESINDO CABANG JOGJA",
+          "GOOD STOCK - JENEPONTO": "PEVESINDO CABANG JENEPONTO",
+        };
+
+        const cabang =
+          warehouseToCabangMap[detail?.warehouseName ?? ""] ??
+          detail?.warehouseName ??
+          null;
+
+        const cabangTujuan =
+          warehouseToCabangMap[detail?.referenceWarehouseName ?? ""] ??
+          detail?.referenceWarehouseName ??
+          null;
+
+        for (const detailItem of detailMutasi) {
+          const newQuantity =
+            detailItem?.fromItemTransferDetail?.quantity ?? null;
+
+          if (!newQuantity) continue;
+
+          const { error: updateError } = await supabase
+            .from("mutasi")
+            .update({
+              quantity: newQuantity,
+              detail_name: detailItem?.detailName ?? null,
+              detail_item: detailItem?.processQuantityDesc ?? null,
+              description: detailItem?.inTransitWarehouse?.description ?? null,
+              status_transfer:
+                detail?.fromItemTransfer?.itemTransferOutStatus ?? null,
+              process_quantity_desc:
+                detail?.inTransitWarehouse?.description ?? null,
+              tanggal_transfer: detail?.transDate ?? null,
+              sumber_mutasi: cabang,
+              tujuan_mutasi: cabangTujuan,
+            })
+            .eq("id_mutasi", itemId)
+            .is("quantity", null);
+
+          if (updateError) {
+            // console.error(`❌ Failed to update null quantity for id_mutasi ${itemId}:`, updateError.message);
+          } else {
+            // console.log(`🔄 Updated quantity for existing id_mutasi: ${itemId}`);
+          }
+        }
+
+        continue; // skip insert
       }
 
       // Fetch detail
@@ -62,7 +119,7 @@ export async function POST(req: NextRequest) {
 
       // Build payload using detail header + each item
       const payload = detailMutasi.map((detailItem: any) => ({
-        quantity: detailItem?.quantity ?? null,
+        quantity: detailItem?.fromItemTransferDetail?.quantity ?? null,
         number: detail?.number ?? null,
         id_mutasi: detail?.id ?? null,
         branch_id: detail?.branchId ?? null,

@@ -20,8 +20,9 @@ export default function Page() {
         return null;
     });
     const [driver, setDriver] = useState<{ [key: number]: string }>({})
-    const [loading, setLoading] = useState(false)
-    // const [driverLis, setDriverList] = useState<any>([])
+    const [loading, setLoading] = useState<{ [key: number]: boolean }>({});
+    const [activeDriverButtons, setActiveDriverButtons] = useState<{ [key: string]: boolean }>({});
+    const [driverLis, setDriverList] = useState<any>([])
     const itemsPerPage = 100;
     const route = useRouter()
     const path = usePathname()
@@ -78,11 +79,12 @@ export default function Page() {
     }, [cabang, page])
 
     const handleChange = (id: number, value: string) => {
+        console.log("Driver updated:", value);
         setDriver((prev) => ({ ...prev, [id]: value }));
     };
 
     const saveDriver = async (id: number) => {
-        setLoading(true)
+        setLoading((prev) => ({ ...prev, [id]: true }));
         const newDriver = driver[id] || "";
         try {
             const { data, error } = await supabase
@@ -99,7 +101,7 @@ export default function Page() {
         } catch (error) {
             console.error("❌ Error:", error);
         } finally {
-            setLoading(false)
+            setLoading((prev) => ({ ...prev, [id]: false }));
         }
     };
 
@@ -157,20 +159,27 @@ export default function Page() {
         }
     }
 
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             const res = await getDriver()
-    //             console.log(res)
-    //             if (res) {
-    //                 setDriverList(res?.data.data)
-    //             }
-    //         } catch (error) {
-    //             console.log(error)
-    //         }
-    //     }
-    //     fetchData()
-    // }, [])
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await getDriver()
+                console.log(res)
+                if (res) {
+                    setDriverList(res?.data.data)
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        fetchData()
+    }, [])
+
+    const changeDriver = (id: string) => {
+        setActiveDriverButtons((prev) => ({
+            ...prev,
+            [id]: !prev[id],
+        }));
+    };
 
 
     return (
@@ -229,23 +238,47 @@ export default function Page() {
                                             <p>{item.driver && "Driver"}</p>
                                             <p>{item.driver && ":"}</p>
                                             <p>{item.driver && item.driver}</p>
+
+                                            <div className={`flex w-full justify-start ${item.driver ? "hidden" : ""}`}>
+                                                <button
+                                                    onClick={() => changeDriver(item.id)}
+                                                    className={`w-14 h-8 flex items-center rounded-full p-1 transition-colors duration-300 ${!activeDriverButtons[item.id] ? "bg-black" : "bg-gray-300"
+                                                        }`}
+                                                >
+                                                    <div
+                                                        className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${!activeDriverButtons[item.id] ? "translate-x-6" : "translate-x-0"
+                                                            }`}
+                                                    />
+                                                </button>
+                                            </div>
+                                            {/* <Button
+                                                className={`${!activeDriverButtons[item.id] ? "bg-gray-400" : ""}`}
+                                                onClick={() => changeDriver(item.id)}
+                                            >
+                                                Diantar Driver
+                                            </Button> */}
                                         </div>
                                         {
                                             !item.driver && item.tujuan_mutasi !== cabang && (
                                                 <div className="w-full grid grid-cols-1 gap-[.5rem]">
-                                                    {/* <DropDown
-                                                        label="nama"
-                                                        value={item.nama}
-                                                        onChange={handleChange}
-                                                        options={driverLis}
-                                                    /> */}
-                                                    <Input
-                                                        label="Driver"
-                                                        onChange={(e: any) => handleChange(item.id, e.target.value)}
-                                                        value={driver[item.id] || ""}
-                                                        name="driver"
-                                                    />
-                                                    <Button onClick={() => saveDriver(item.id)} loading={loading}>Simpan</Button>
+                                                    <div>
+                                                        {activeDriverButtons[item.id] ? (
+                                                            <DropDown
+                                                                label="Driver"
+                                                                value={driver[item.id] || ""}
+                                                                onChange={(e: any) => handleChange(item.id, e.target.value)}
+                                                                options={driverLis}
+                                                            />
+                                                        ) : (
+                                                            <Input
+                                                                label="Pengirim"
+                                                                onChange={(e: any) => handleChange(item.id, e.target.value)}
+                                                                value={driver[item.id] || ""}
+                                                                name="driver"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                    <Button onClick={() => saveDriver(item.id)} loading={!!loading[item.id]}>Simpan</Button>
                                                 </div>
                                             )
                                         }
