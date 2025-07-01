@@ -53,7 +53,7 @@ export default function Page() {
                 kode_barang,
                 jumlah_item,
                 ket_nama)`)
-            .eq("tanggal_pengantaran", today)
+            // .eq("tanggal_pengantaran", today)
             .eq("cabang", cabang)
             .neq("status", "Selesai Pengantaran")
             .order("order_id", { ascending: true })
@@ -134,7 +134,11 @@ export default function Page() {
     };
 
     const changePage = (e: any) => {
-        route.push("/sales/list-produk")
+        if (e === "list") {
+            route.push("/sales/list-produk")
+        } else if (e === "lokasi") {
+            route.push("/sales/lokasi-driver")
+        }
     }
 
     return (
@@ -146,8 +150,11 @@ export default function Page() {
                         <div className={`cursor-pointer px-[1rem] py-[.5rem] ${path === "/sales" ? "bg-green-600 text-white rounded-t-md" : ""}`}>
                             Pengantaran
                         </div>
-                        <button onClick={changePage} className="cursor-pointer px-[1rem] py-[.5rem] border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-yellow-400 text-white rounded-t-md">
+                        <button onClick={() => changePage("list")} className="cursor-pointer px-[1rem] py-[.5rem] border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-yellow-400 text-white rounded-t-md">
                             Produk
+                        </button>
+                        <button onClick={() => changePage("lokasi")} className="cursor-pointer px-[1rem] py-[.5rem] border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-blue-400 text-white rounded-t-md">
+                            Lokasi
                         </button>
                     </div>
                 </div>

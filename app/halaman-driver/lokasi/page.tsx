@@ -4,7 +4,18 @@ import { useEffect, useState } from "react";
 
 export default function Page() {
     const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const driverId = "123"; // 👈 replace with real driver ID from auth/session
+    const [theId, setId] = useState<number | null>(null); // correct initialization
+
+    useEffect(() => {
+        const getId = localStorage.getItem("id");
+
+        if (getId) {
+            const parsedId = parseInt(getId, 10); // safely parse to number
+            if (!isNaN(parsedId)) {
+                setId(parsedId); // set it in state
+            }
+        }
+    }, []);
 
 
     useEffect(() => {
@@ -26,7 +37,7 @@ export default function Page() {
                             headers: {
                                 "Content-Type": "application/json",
                             },
-                            body: JSON.stringify({ driverId, ...newLocation }),
+                            body: JSON.stringify({ theId, ...newLocation }),
                         });
                     } catch (err) {
                         console.error("Failed to send location:", err);
@@ -48,7 +59,7 @@ export default function Page() {
         return () => {
             navigator.geolocation.clearWatch(watchId);
         };
-    }, [driverId]);
+    }, [theId]);
 
     return (
         <div className="py-[2rem]">

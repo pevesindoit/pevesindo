@@ -178,9 +178,9 @@ export default function Page() {
 
     const changePage = (e: any) => {
         if (e === "pengantaran") {
-            route.push("/atur-pengantaran/")
-        } else if (e === "mutasi") {
-            route.push("/atur-pengantaran/mutasi")
+            route.push("/sales")
+        } else if (e === "list") {
+            route.push("/sales/list-produk")
         }
     }
 
@@ -194,8 +194,8 @@ export default function Page() {
                         <button onClick={() => changePage("pengantaran")} className="cursor-pointer px-[1rem] py-[.5rem] border-gray-200 border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-green-600 text-white rounded-t-md">
                             Pengantaran
                         </button>
-                        <button onClick={() => changePage("mutasi")} className="cursor-pointer px-[1rem] py-[.5rem] border-gray-200 border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-yellow-400 text-white rounded-t-md">
-                            Mutasi
+                        <button onClick={() => changePage("list")} className="cursor-pointer px-[1rem] py-[.5rem] border-gray-200 border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-yellow-400 text-white rounded-t-md">
+                            List Produk
                         </button>
                         <button className="cursor-pointer px-[1rem] py-[.5rem] border-gray-200 border-x-[1px] border-t-[1px] transform bg-blue-600 text-white rounded-t-md">
                             Lokasi

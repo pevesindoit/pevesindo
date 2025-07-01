@@ -50,7 +50,11 @@ export default function Page() {
     }
 
     const changePage = (e: any) => {
-        route.push("/sales")
+        if (e === "sales") {
+            route.push("/sales")
+        } else if (e === "lokasi") {
+            route.push("/sales/lokasi-driver")
+        }
     }
 
     return (
@@ -58,11 +62,14 @@ export default function Page() {
             <div className="w-full flex justify-center px-[1rem] z-0">
                 <div className="w-[95%]">
                     <div className="flex">
-                        <div onClick={changePage} className={`transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 cursor-pointer px-[1rem] py-[.5rem] bg-green-600 rounded-t-md text-white`}>
+                        <div onClick={() => changePage("sales")} className={`transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 cursor-pointer px-[1rem] py-[.5rem] bg-green-600 rounded-t-md text-white`}>
                             Pengantaran
                         </div>
-                        <button className={`cursor-pointer px-[1rem] py-[.5rem] border-x-[1px] border-t-[1px]   rounded-t-md ${path === "/sales/list-produk" ? " bg-yellow-400 text-white rounded-t-md" : ""}`}>
+                        <button className={`cursor-pointer px-[1rem] py-[.5rem] border-x-[1px] border-t-[1px]   rounded-t-md ${path === "/sales/list-produk" ? " bg-blue-400 text-white rounded-t-md" : ""}`}>
                             Produk
+                        </button>
+                        <button onClick={() => changePage("lokasi")} className="cursor-pointer px-[1rem] py-[.5rem] border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-yellow-400 text-white rounded-t-md">
+                            Lokasi
                         </button>
                     </div>
                 </div>

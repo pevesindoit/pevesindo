@@ -187,8 +187,6 @@ export default function Page() {
     const changePage = (e: any) => {
         if (e === "mutasi") {
             route.push("/atur-pengantaran/mutasi")
-        } else if (e === "lokasi") {
-            route.push("/atur-pengantaran/lokasi-driver")
         }
     }
 
@@ -204,9 +202,6 @@ export default function Page() {
                             </div>
                             <button onClick={() => changePage("mutasi")} className="cursor-pointer px-[1rem] py-[.5rem] border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-yellow-400 text-white rounded-t-md">
                                 Mutasi
-                            </button>
-                            <button onClick={() => changePage("lokasi")} className="cursor-pointer px-[1rem] py-[.5rem] border-x-[1px] border-t-[1px] transform translate-y-7 hover:-translate-y-[-.2rem] transition-all duration-400 bg-blue-400 text-white rounded-t-md">
-                                Lokasi
                             </button>
                         </div>
                     </div>

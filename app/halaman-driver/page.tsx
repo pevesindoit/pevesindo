@@ -16,6 +16,64 @@ export default function Page() {
     const [page, setPage] = useState(1);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [modal, setModal] = useState(false)
+    const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [theId, setId] = useState<number | null>(null); // correct initialization
+
+    useEffect(() => {
+        const getId = localStorage.getItem("id");
+
+        if (getId) {
+            const parsedId = parseInt(getId, 10); // safely parse to number
+            if (!isNaN(parsedId)) {
+                setId(parsedId); // set it in state
+            }
+        }
+    }, []);
+
+
+    useEffect(() => {
+        if (!navigator.geolocation) {
+            console.error("Geolocation is not supported by your browser");
+            return;
+        }
+
+        const watchId = navigator.geolocation.watchPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const newLocation = { lat: latitude, lng: longitude };
+                setLocation(newLocation);
+
+                const fetchDataLocation = async () => {
+                    try {
+                        await fetch("/api/update-location", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ theId, ...newLocation }),
+                        });
+                    } catch (err) {
+                        console.error("Failed to send location:", err);
+                    }
+                };
+
+                fetchDataLocation();
+            },
+            (err) => {
+                console.error("Error getting location:", err);
+            },
+            {
+                enableHighAccuracy: true,
+                maximumAge: 10000,
+                timeout: 5000,
+            }
+        );
+
+        return () => {
+            navigator.geolocation.clearWatch(watchId);
+        };
+    }, [theId]);
+
     const itemsPerPage = 100;
     const [cabang, setCabang] = useState<string | null>(() => {
         if (typeof window !== "undefined") {
