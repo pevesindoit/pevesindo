@@ -17,22 +17,17 @@ export default function Page() {
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [modal, setModal] = useState(false)
     const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const [theId, setId] = useState<number | null>(null); // correct initialization
+    const [driverId, setDriverId] = useState<string | null>(null); // or number if you store number
 
     useEffect(() => {
-        const getId = localStorage.getItem("id");
-
-        if (getId) {
-            const parsedId = parseInt(getId, 10); // safely parse to number
-            if (!isNaN(parsedId)) {
-                setId(parsedId); // set it in state
-            }
-        }
+        const storedId = localStorage.getItem("id");
+        setDriverId(storedId); // use parseInt(storedId || "") if it's a number
     }, []);
 
 
+    console.log("id Driver", driverId)
     useEffect(() => {
-        if (!navigator.geolocation) {
+        if (!navigator.geolocation || !driverId) {
             console.error("Geolocation is not supported by your browser");
             return;
         }
@@ -50,7 +45,7 @@ export default function Page() {
                             headers: {
                                 "Content-Type": "application/json",
                             },
-                            body: JSON.stringify({ theId, ...newLocation }),
+                            body: JSON.stringify({ driverId, ...newLocation }),
                         });
                     } catch (err) {
                         console.error("Failed to send location:", err);
@@ -72,7 +67,7 @@ export default function Page() {
         return () => {
             navigator.geolocation.clearWatch(watchId);
         };
-    }, [theId]);
+    }, [driverId]);
 
     const itemsPerPage = 100;
     const [cabang, setCabang] = useState<string | null>(() => {

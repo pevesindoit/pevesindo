@@ -100,9 +100,48 @@ export default function Home() {
     }
   };
 
+  // useEffect(() => {
+  //   localStorage.clear();
+  // }, []);
+
+  // Only clear if no session
   useEffect(() => {
-    localStorage.clear();
+    const userType = Cookies.get("user-type") || localStorage.getItem("type");
+
+    if (!userType) {
+      localStorage.clear();
+    }
   }, []);
+
+  // Redirect if session exists
+  useEffect(() => {
+    const userType = Cookies.get("user-type") || localStorage.getItem("type");
+
+    if (userType) {
+      switch (userType) {
+        case 'admin':
+          router.push('/pengantaran');
+          break;
+        case 'hrd':
+          router.push('/hrd');
+          break;
+        case 'gudang':
+          router.push('/atur-pengantaran');
+          break;
+        case 'sales':
+          router.push('/sales');
+          break;
+        case 'driver':
+          router.push('/halaman-driver');
+          break;
+        default:
+          router.push('/dashboard');
+          break;
+      }
+    }
+  }, []);
+
+
 
   return (
     <div className="py-[2rem]">

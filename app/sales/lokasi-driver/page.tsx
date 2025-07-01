@@ -41,6 +41,8 @@ export default function Page() {
         }
     }, [setCabang])
 
+    console.log("ini Drivernya", drivers)
+
     const fetchData = async () => {
         const from = (page - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
@@ -106,6 +108,7 @@ export default function Page() {
             try {
                 const res = await fetch("/api/driver-location");
                 const data = await res.json();
+                console.log("ini didalam", data)
                 setDrivers(data.locations || []);
             } catch (err) {
                 console.error("Failed to fetch driver locations:", err);
