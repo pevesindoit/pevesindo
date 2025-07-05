@@ -1,49 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
 import supabase from "@/lib/db";
 import { fetchMutations } from "@/app/function/mutation";
-import { fetchMutationsDetail } from "@/app/function/mutationDetail";
+import { fetchMutationsDetail } from "@/app/function/fetchMutationsDetail";
+
+const warehouseToCabangMap: Record<string, string> = {
+  "GOOD STOCK - BADDOKA": "PEVESINDO CABANG BADDOKA",
+  "GOOD STOCK - HERTASNING": "PEVESINDO CABANG HERTASNING",
+  "GOOD STOCK - PARE-PARE": "PEVESINDO CABANG PARE-PARE",
+  "GOOD STOCK - BONE": "PEVESINDO CABANG BONE",
+  "GOOD STOCK - JOGJA": "PEVESINDO CABANG JOGJA",
+  "GOOD STOCK - JENEPONTO": "PEVESINDO CABANG JENEPONTO",
+};
+
+function getQuantity(detailItem: any): number | null {
+  return (
+    detailItem?.fromItemTransferDetail?.quantity ??
+    detailItem?.quantity ??
+    detailItem?.receivedQuantity ??
+    null
+  );
+}
 
 export async function POST(req: NextRequest) {
   const data = await req.json();
 
   try {
-    const result = await fetchMutations(data);
-    const allItems = result?.d ?? [];
+    // ✅ Step 1: Update records with null status_transfer
+    const { data: pendingMutasi, error: pendingError } = await supabase
+      .from("mutasi")
+      .select("id_mutasi")
+      .is("status_transfer", null);
 
-    for (const item of allItems) {
-      const itemId = item?.id;
-      if (!itemId) continue;
-
-      // Skip if already in DB
-      const { data: existing, error: checkError } = await supabase
-        .from("mutasi")
-        .select("id_mutasi")
-        .eq("id_mutasi", itemId)
-        .maybeSingle();
-
-      if (checkError) {
-        // console.error("❌ Error checking existing mutasi:", checkError.message);
-        continue;
-      }
-
-      if (existing) {
+    if (pendingError) {
+      console.error("❌ Error fetching pending mutasi:", pendingError.message);
+    } else {
+      for (const row of pendingMutasi ?? []) {
+        const itemId = row.id_mutasi;
         const getDetail = await fetchMutationsDetail(itemId);
         const detail = getDetail?.d;
 
-        if (!detail || !Array.isArray(detail.detailItem)) {
+        if (
+          !detail ||
+          detail?.fromItemTransfer?.itemTransferOutStatus !== "FULL_RECEIVED"
+        ) {
           continue;
         }
 
-        const detailMutasi = detail.detailItem;
-        const warehouseToCabangMap: Record<string, string> = {
-          "GOOD STOCK - BADDOKA": "PEVESINDO CABANG BADDOKA",
-          "GOOD STOCK - HERTASNING": "PEVESINDO CABANG HERTASNING",
-          "GOOD STOCK - PARE-PARE": "PEVESINDO CABANG PARE-PARE",
-          "GOOD STOCK - BONE": "PEVESINDO CABANG BONE",
-          "GOOD STOCK - JOGJA": "PEVESINDO CABANG JOGJA",
-          "GOOD STOCK - JENEPONTO": "PEVESINDO CABANG JENEPONTO",
-        };
-
+        const detailMutasi = detail.detailItem ?? [];
         const cabang =
           warehouseToCabangMap[detail?.warehouseName ?? ""] ??
           detail?.warehouseName ??
@@ -55,17 +58,14 @@ export async function POST(req: NextRequest) {
           null;
 
         for (const detailItem of detailMutasi) {
-          const newQuantity =
-            detailItem?.fromItemTransferDetail?.quantity ?? null;
-
-          if (!newQuantity) continue;
+          const quantity = getQuantity(detailItem);
 
           const { error: updateError } = await supabase
             .from("mutasi")
             .update({
-              quantity: newQuantity,
+              quantity,
               detail_name: detailItem?.detailName ?? null,
-              detail_item: detailItem?.processQuantityDesc ?? null,
+              detail_item: `${quantity ?? 0} Lembar`,
               description: detailItem?.inTransitWarehouse?.description ?? null,
               status_transfer:
                 detail?.fromItemTransfer?.itemTransferOutStatus ?? null,
@@ -74,84 +74,116 @@ export async function POST(req: NextRequest) {
               tanggal_transfer: detail?.transDate ?? null,
               sumber_mutasi: cabang,
               tujuan_mutasi: cabangTujuan,
+              status_name: detail?.approvalStatus ?? null,
             })
             .eq("id_mutasi", itemId)
-            .is("quantity", null);
+            .eq("detail_name", detailItem?.detailName ?? null);
 
           if (updateError) {
-            // console.error(`❌ Failed to update null quantity for id_mutasi ${itemId}:`, updateError.message);
+            console.error(
+              `❌ Failed to update status_transfer for id_mutasi ${itemId}:`,
+              updateError.message
+            );
           } else {
-            // console.log(`🔄 Updated quantity for existing id_mutasi: ${itemId}`);
+            console.log(
+              `✅ Updated mutasi ${itemId} with FULL_RECEIVED from Accurate`
+            );
           }
         }
-
-        continue; // skip insert
       }
+    }
 
-      // Fetch detail
+    // ✅ Step 2: Process new mutation data from Accurate
+    const result = await fetchMutations(data);
+    const allItems = result?.d ?? [];
+
+    for (const item of allItems) {
+      const itemId = item?.id;
+      if (!itemId) continue;
+
+      const { data: existing, error: checkError } = await supabase
+        .from("mutasi")
+        .select("id_mutasi")
+        .eq("id_mutasi", itemId)
+        .maybeSingle();
+
+      if (checkError) continue;
+
       const getDetail = await fetchMutationsDetail(itemId);
       const detail = getDetail?.d;
 
-      if (!detail || !Array.isArray(detail.detailItem)) {
-        // console.warn(`⚠️ No detailItem array found for mutasi id: ${itemId}`);
-        continue;
-      }
+      if (!detail || !Array.isArray(detail.detailItem)) continue;
 
       const detailMutasi = detail.detailItem;
-      const warehouseToCabangMap: Record<string, string> = {
-        "GOOD STOCK - BADDOKA": "PEVESINDO CABANG BADDOKA",
-        "GOOD STOCK - HERTASNING": "PEVESINDO CABANG HERTASNING",
-        "GOOD STOCK - PARE-PARE": "PEVESINDO CABANG PARE-PARE",
-        "GOOD STOCK - BONE": "PEVESINDO CABANG BONE",
-        "GOOD STOCK - JOGJA": "PEVESINDO CABANG JOGJA",
-        "GOOD STOCK - JENEPONTO": "PEVESINDO CABANG JENEPONTO",
-      };
-
       const cabang =
         warehouseToCabangMap[detail?.warehouseName ?? ""] ??
         detail?.warehouseName ??
         null;
-
       const cabangTujuan =
         warehouseToCabangMap[detail?.referenceWarehouseName ?? ""] ??
         detail?.referenceWarehouseName ??
         null;
 
-      // Build payload using detail header + each item
-      const payload = detailMutasi.map((detailItem: any) => ({
-        quantity: detailItem?.fromItemTransferDetail?.quantity ?? null,
-        number: detail?.number ?? null,
-        id_mutasi: detail?.id ?? null,
-        branch_id: detail?.branchId ?? null,
-        sumber_mutasi: cabang,
-        status_name: detail?.approvalStatus ?? null,
-        detail_name: detailItem?.detailName ?? null,
-        detail_item: detailItem.processQuantityDesc ?? null,
-        description: detailItem?.inTransitWarehouse?.description ?? null,
-        tujuan_mutasi: cabangTujuan,
-        status_transfer:
-          detail?.fromItemTransfer?.itemTransferOutStatus ?? null,
-        process_quantity_desc: detail?.inTransitWarehouse?.description ?? null,
-        tanggal_transfer: detail?.transDate ?? null,
-      }));
+      if (existing) {
+        for (const detailItem of detailMutasi) {
+          const quantity = getQuantity(detailItem);
+          if (!quantity) continue;
 
-      // Insert into mutasi table
+          await supabase
+            .from("mutasi")
+            .update({
+              quantity,
+              detail_name: detailItem?.detailName ?? null,
+              detail_item: `${quantity ?? 0} Lembar`,
+              description: detailItem?.inTransitWarehouse?.description ?? null,
+              status_transfer:
+                detail?.fromItemTransfer?.itemTransferOutStatus ?? null,
+              process_quantity_desc:
+                detail?.inTransitWarehouse?.description ?? null,
+              tanggal_transfer: detail?.transDate ?? null,
+              sumber_mutasi: cabang,
+              tujuan_mutasi: cabangTujuan,
+              status_name: detail?.approvalStatus ?? null,
+            })
+            .eq("id_mutasi", itemId)
+            .eq("detail_name", detailItem?.detailName ?? null);
+        }
+
+        continue; // skip insert
+      }
+
+      const payload = detailMutasi.map((detailItem: any) => {
+        const quantity = getQuantity(detailItem);
+        return {
+          quantity,
+          number: detail?.number ?? null,
+          id_mutasi: detail?.id ?? null,
+          branch_id: detail?.branchId ?? null,
+          sumber_mutasi: cabang,
+          status_name: detail?.approvalStatus ?? null,
+          detail_name: detailItem?.detailName ?? null,
+          detail_item: `${quantity ?? 0} Lembar`,
+          description: detailItem?.inTransitWarehouse?.description ?? null,
+          tujuan_mutasi: cabangTujuan,
+          status_transfer:
+            detail?.fromItemTransfer?.itemTransferOutStatus ?? null,
+          process_quantity_desc:
+            detail?.inTransitWarehouse?.description ?? null,
+          tanggal_transfer: detail?.transDate ?? null,
+        };
+      });
+
       const { error: insertError } = await supabase
         .from("mutasi")
         .insert(payload);
 
       if (insertError) {
-        // console.error("❌ Insert to mutasi failed:", insertError.message);
-      } else {
-        // console.log(
-        //   `✅ Inserted ${payload.length} records to mutasi for ID: ${itemId}`
-        // );
+        console.error("❌ Insert to mutasi failed:", insertError.message);
       }
     }
 
     return NextResponse.json({ success: true, data: result });
   } catch (error: any) {
-    // console.error("❌ Fatal error:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

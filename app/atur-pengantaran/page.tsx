@@ -90,8 +90,8 @@ export default function Page() {
                 jumlah_item,
                 ket_nama
             )`)
-                .eq("tanggal_pengantaran", today)
-                .eq("cabang", cabang)
+                // .eq("tanggal_pengantaran", today)
+                // .eq("cabang", cabang)
                 .neq("status", "Selesai Pengantaran")
                 .eq("driver", "Ambil Sendiri")
                 .order("order_id", { ascending: true })
@@ -110,8 +110,8 @@ export default function Page() {
                 ket_nama
             )`)
                 // .eq("tanggal_pengantaran", today)
-                .eq("cabang", cabang)
-                .neq("status", "Selesai Pengantaran")
+                // .eq("cabang", cabang)
+                // .neq("status", "Selesai Pengantaran")
                 .neq("driver", "Ambil Sendiri")
                 .order("order_id", { ascending: true })
                 .range(from, to);

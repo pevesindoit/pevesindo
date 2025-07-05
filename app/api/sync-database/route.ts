@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
         driver: detail?.d?.shipment?.name || null,
         order_id: nextOrderId,
         cabang: cabang,
+        is_mutation: false,
       };
 
       const { data: insertedSJ, error: sjError } = await supabase

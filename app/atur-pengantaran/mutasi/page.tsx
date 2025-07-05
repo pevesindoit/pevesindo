@@ -84,6 +84,71 @@ export default function Page() {
     };
 
     const saveDriver = async (id: number) => {
+        if (activeDriverButtons) {
+            const { data: mutationData, error: mutationError } = await supabase
+                .from("mutasi")
+                .select()
+                .eq("id", id)
+
+            console.log(mutationData)
+
+            const mutation = mutationData?.[0]
+
+            const { data: maxOrder } = await supabase
+                .from("surat_jalan")
+                .select("order_id")
+                .order("order_id", { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            const nextOrderId = (maxOrder?.order_id || 0) + 1;
+
+            console.log(driver[id])
+            console.log(id)
+
+            const payload = {
+                // id_so: mutation.id_mutasi || null,
+                customer_name: mutation.tujuan_mutasi,
+                so_number: mutation.number,
+                tanggal_pengantaran: mutation.tanggal_transfer,
+                status: "Belum Loading",
+                alamat: `${mutation.tujuan_mutasi}`,
+                driver: driver[id],
+                order_id: nextOrderId,
+                cabang: mutation.sumber_mutasi,
+                is_mutation: true
+            };
+
+            const { data: insertedSJ, error: sjError } = await supabase
+                .from("surat_jalan")
+                .insert([payload])
+                .select();
+
+            if (sjError || !insertedSJ?.[0]?.id) {
+                console.error("❌ Gagal insert surat jalan:", sjError);
+                return; // stop jika insert surat_jalan gagal
+            }
+
+            const suratJalanId = insertedSJ[0].id;
+
+            const productPayloads = {
+                id_pengantaran: suratJalanId,
+                nama_barang: mutation.detail_name,
+                kode_barang: mutation.detail_name || null,
+                jumlah_item: mutation.quantity || 0,
+                ket_nama: mutation.detail_item || null,
+                tanggal_pengantaran: mutation.tanggal_transfer || null
+            };
+
+            const { error: productError } = await supabase
+                .from("products")
+                .insert(productPayloads);
+
+            if (productError) {
+                console.error("❌ Gagal insert product:", productError);
+            }
+        }
+
         setLoading((prev) => ({ ...prev, [id]: true }));
         const newDriver = driver[id] || "";
         try {

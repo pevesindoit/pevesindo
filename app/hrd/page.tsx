@@ -46,6 +46,7 @@ export default function Page() {
             .gte("tanggal_pengantaran", start)
             .lte("tanggal_pengantaran", end)
             .neq("status", "Selesai Pengantaran")
+            .neq("is_mutation", true)
             .eq("cabang", cabang);
 
         const { data: mutasiData, error: mutasiError } = await supabase
