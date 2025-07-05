@@ -82,9 +82,8 @@ export default function Page() {
         console.log("Driver updated:", value);
         setDriver((prev) => ({ ...prev, [id]: value }));
     };
-
     const saveDriver = async (id: number) => {
-        if (activeDriverButtons) {
+        if (activeDriverButtons[id]) {
             const { data: mutationData, error: mutationError } = await supabase
                 .from("mutasi")
                 .select()
