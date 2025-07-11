@@ -72,7 +72,10 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
                 <div className="flex space-y-[1rem] w-full">
                     {/* <h2 className="text-[1rem] font-bold">Nomor SO: {item.so_number}</h2> */}
                     <div className="flex justify-between items-center w-full">
-                        <h2 className="text-[1rem] font-bold">Nomor SO: {item.so_number}</h2>
+                        <h2 className="text-[1rem] font-bold">{item.driver === "Ambil Sendiri"
+                            ? "Pengambilan"
+                            : `${item.is_mutation ? "Mutasi" : "Pengantaran"}`}
+                        </h2>
                         <span
                             className={`transition-transform duration-200 ${isOpen ? "rotate-180" : "rotate-0"
                                 }`}

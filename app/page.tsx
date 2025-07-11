@@ -48,6 +48,7 @@ export default function Home() {
         localStorage.setItem("id", authData.user.id)
         setToken(authData?.session.access_token)
         Cookies.set('sb-access-token', authData.session.access_token, { path: '/', expires: 1 })
+        // Cookies.set('sb-refresh-token', authData.session.refresh_token, { path: '/', expires: 1 })
         console.log("ini emailnya", authData?.session.access_token)
         console.log("ini data usernya", authData.user)
       }
