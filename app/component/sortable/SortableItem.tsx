@@ -23,6 +23,10 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
         zIndex: isDragging ? 999 : "auto",
     };
 
+    const handleCardClick = () => {
+        if (isDragging) return;      // ignore click after drag
+        setIsOpen((o) => !o);
+    };
     useEffect(() => {
         setDetail(item.products)
     }, [item])
@@ -50,12 +54,20 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
         <div
             ref={setNodeRef}
             style={style}
-            {...attributes}
-            {...listeners}
-            className={`touch-none tap-transparent transition-all duration-300 ease-out transform py-[2rem] px-[2rem] 
-                rounded-md border bg-white shadow flex space-x-[1rem] w-full
-                ${isDragging ? "scale-[1.02] shadow-lg" : ""}`} onClick={() => setIsOpen(!isOpen)}
+            {...attributes}            // ✅ keep accessibility props
+            onClick={handleCardClick}  // ✅ use the guarded click
+            className={`touch-none tap-transparent transition-all duration-300 ease-out
+                  rounded-md border bg-white shadow w-full py-[1rem] px-[1rem] space-y-[.5rem]
+                  ${isDragging ? "scale-[1.02] shadow-lg" : ""}`}
         >
+            {/* === DRAG HANDLE ================================= */}
+            <button
+                {...listeners}           // ✅ drag starts here, not on wrapper
+                className="mr-2 cursor-grab active:cursor-grabbing select-none"
+                onClick={(e) => e.stopPropagation()} // don’t toggle when tapping handle
+            >
+                Pindahkan
+            </button>
             <div className="w-full">
                 <div className="flex space-y-[1rem] w-full">
                     {/* <h2 className="text-[1rem] font-bold">Nomor SO: {item.so_number}</h2> */}
