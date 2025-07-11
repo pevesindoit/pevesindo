@@ -6,6 +6,8 @@ import {
     DndContext,
     closestCenter,
     PointerSensor,
+    TouchSensor,
+    MouseSensor,
     useSensor,
     useSensors,
 } from "@dnd-kit/core";
@@ -46,8 +48,17 @@ export default function Page() {
             activationConstraint: {
                 distance: 5,
             },
-        })
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 150,            // long‑press start on touch (ms)
+                tolerance: 5,
+            },
+        }),
+        useSensor(MouseSensor)
     );
+
+
 
     useEffect(() => {
         const data = {
