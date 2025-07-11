@@ -52,7 +52,7 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
             style={style}
             {...attributes}
             {...listeners}
-            className={`transition-all duration-300 ease-out transform py-[2rem] px-[2rem] 
+            className={`touch-none tap-transparent transition-all duration-300 ease-out transform py-[2rem] px-[2rem] 
                 rounded-md border bg-white shadow flex space-x-[1rem] w-full
                 ${isDragging ? "scale-[1.02] shadow-lg" : ""}`} onClick={() => setIsOpen(!isOpen)}
         >
