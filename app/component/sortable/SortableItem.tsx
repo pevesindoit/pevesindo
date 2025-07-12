@@ -3,10 +3,24 @@ import { IPengantaranType } from "@/types/pengantaranType.type";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import React, { useEffect, useState } from "react";
+import Button from "../Button";
+import DropDown from "../DropDown";
 
 const SortableItem = ({ item, index }: { item: any; index: number }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [detail, setDetail] = useState<any>([])
+    const [isShowDrop, setIsShowDrop] = useState(false)
+    const [newCabang, setNewCabang] = useState("")
+    const [driverLis, setDriverLis] = useState([
+        "PEVESINDO CABANG HERTASNING",
+        "PEVESINDO CABANG BADDOKA",
+        "PEVESINDO CABANG PAREPARE",
+        "PEVESINDO CABANG BONE",
+        // "PEVESINDO CABANG ",
+    ])
+    const [formData, setFormData] = useState({
+        cabang: '',
+    });
     const [loading, setLoading] = useState(false)
     const {
         attributes,
@@ -47,6 +61,18 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
         } finally {
             setLoading(false)
         }
+    };
+
+    const changeBranch = () => {
+        console.log("ganti ges")
+        if (isDragging) return;      // ignore click after drag
+        setIsOpen((o) => !o);
+        setIsShowDrop(!isShowDrop)
+    }
+
+    const handleChange = (e: any) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
 
@@ -152,6 +178,20 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
                             )
                         }
                     </div>
+                    {/* <div className="space-y-[1rem]">
+                        {
+                            isShowDrop && (
+                                <DropDown
+                                    label="cabang"
+                                    name="cabang" // <== important
+                                    value={formData.cabang}
+                                    onChange={handleChange}
+                                    options={driverLis}
+                                />
+                            )
+                        }
+                        <Button onClick={changeBranch}>Ganti Cabang</Button>
+                    </div> */}
                 </div>
             </div>
         </div >
