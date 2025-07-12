@@ -131,6 +131,7 @@ export default function Page() {
             else setOrdered(data || []);
         }
     };
+    console.log("ommaleka")
 
     useEffect(() => {
         if (cabang !== null && driver) {
