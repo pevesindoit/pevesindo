@@ -133,7 +133,7 @@ export default function Page() {
             const productPayloads = {
                 id_pengantaran: suratJalanId,
                 nama_barang: mutation.detail_name,
-                kode_barang: mutation.detail_name || null,
+                kode_barang: mutation.kode_barang || null,
                 jumlah_item: mutation.quantity || 0,
                 ket_nama: mutation.detail_item || null,
                 tanggal_pengantaran: mutation.tanggal_transfer || null
@@ -283,9 +283,13 @@ export default function Page() {
                                             <p>:</p>
                                             <p>{item.tujuan_mutasi}</p>
 
-                                            <p>Kode Barang</p>
+                                            <p>Nama Barang</p>
                                             <p>:</p>
                                             <p>{item.detail_name}</p>
+
+                                            <p>Kode Barang</p>
+                                            <p>:</p>
+                                            <p>{item.kode_barang}</p>
                                             <p>Tanggal Mutasi</p>
                                             <p>:</p>
                                             <p>{item.tanggal_transfer}</p>

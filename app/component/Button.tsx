@@ -7,7 +7,7 @@ export default function Button({
 }: {
     children: React.ReactNode;
     className?: string;
-    onClick?: () => void;
+    onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     loading?: boolean;
 }) {
     return (

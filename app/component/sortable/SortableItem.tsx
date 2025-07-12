@@ -11,16 +11,15 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
     const [detail, setDetail] = useState<any>([])
     const [isShowDrop, setIsShowDrop] = useState(false)
     const [newCabang, setNewCabang] = useState("")
+    const [save, setSave] = useState(false)
     const [driverLis, setDriverLis] = useState([
         "PEVESINDO CABANG HERTASNING",
         "PEVESINDO CABANG BADDOKA",
-        "PEVESINDO CABANG PAREPARE",
+        "PEVESINDO CABANG PARE-PARE",
         "PEVESINDO CABANG BONE",
         // "PEVESINDO CABANG ",
     ])
-    const [formData, setFormData] = useState({
-        cabang: '',
-    });
+    const [formData, setFormData] = useState<{ [key: number]: { cabang: string } }>({});
     const [loading, setLoading] = useState(false)
     const {
         attributes,
@@ -63,19 +62,52 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
         }
     };
 
-    const changeBranch = () => {
-        console.log("ganti ges")
-        if (isDragging) return;      // ignore click after drag
-        setIsOpen((o) => !o);
-        setIsShowDrop(!isShowDrop)
-    }
+    const changeBranch = async (
+        id: number,
+        e: React.MouseEvent<HTMLButtonElement>
+    ) => {
+        e.stopPropagation();
+        if (isDragging) return;
 
-    const handleChange = (e: any) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setIsShowDrop((prev) => !prev);
+        if (isOpen) setIsOpen(false);
+
+        if (save) {
+            const payload = {
+                cabang: formData[id]?.cabang || "", // ✅ safely access cabang for that card
+            };
+
+            console.log(payload, "ini payload")
+
+            const { data: insertedSJ, error: sjError } = await supabase
+                .from("surat_jalan")
+                .update(payload)
+                .select();
+
+            if (sjError || !insertedSJ?.[0]?.id) {
+                console.error("❌ Gagal insert surat jalan:", sjError);
+                return;
+            }
+
+            console.log("✅ Inserted SJ for", id, payload);
+        } else {
+            setSave(true);
+        }
     };
 
 
+    const handleChange = (id: number, e: any) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [id]: {
+                ...prev[id],
+                [name]: value,
+            },
+        }));
+    };
+
+    console.log(save, "ini hasilnya")
     return (
         <div
             ref={setNodeRef}
@@ -178,19 +210,21 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
                             )
                         }
                     </div>
-                    {/* <div className="space-y-[1rem]">
+                    {/* <div className="space-y-[1rem]" onClick={(e) => e.stopPropagation()}>
                         {
                             isShowDrop && (
                                 <DropDown
                                     label="cabang"
-                                    name="cabang" // <== important
-                                    value={formData.cabang}
-                                    onChange={handleChange}
+                                    name="cabang"
+                                    value={formData[item.id]?.cabang || ""}
+                                    onChange={(e: any) => handleChange(item.id, e)}
                                     options={driverLis}
                                 />
                             )
                         }
-                        <Button onClick={changeBranch}>Ganti Cabang</Button>
+                        <Button onClick={(e) => changeBranch(item.id, e)}>
+                            {save ? "Simpan" : "Ganti Cabang"}
+                        </Button>
                     </div> */}
                 </div>
             </div>

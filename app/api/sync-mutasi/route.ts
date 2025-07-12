@@ -59,12 +59,14 @@ export async function POST(req: NextRequest) {
 
         for (const detailItem of detailMutasi) {
           const quantity = getQuantity(detailItem);
+          console.log("ini no kode barangnya", detailItem?.item.no);
 
           const { error: updateError } = await supabase
             .from("mutasi")
             .update({
               quantity,
               detail_name: detailItem?.detailName ?? null,
+              kode_barang: detailItem?.item.no ?? null,
               detail_item: `${quantity ?? 0} Lembar`,
               description: detailItem?.inTransitWarehouse?.description ?? null,
               status_transfer:
@@ -135,6 +137,7 @@ export async function POST(req: NextRequest) {
               quantity,
               detail_name: detailItem?.detailName ?? null,
               detail_item: `${quantity ?? 0} Lembar`,
+              kode_barang: detailItem?.item.no ?? null,
               description: detailItem?.inTransitWarehouse?.description ?? null,
               status_transfer:
                 detail?.fromItemTransfer?.itemTransferOutStatus ?? null,
@@ -158,6 +161,7 @@ export async function POST(req: NextRequest) {
           quantity,
           number: detail?.number ?? null,
           id_mutasi: detail?.id ?? null,
+          kode_barang: detailItem?.item.no ?? null,
           branch_id: detail?.branchId ?? null,
           sumber_mutasi: cabang,
           status_name: detail?.approvalStatus ?? null,
