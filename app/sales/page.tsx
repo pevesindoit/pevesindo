@@ -7,6 +7,7 @@ import ModalSuccessDelivery from '../component/modal/ModalSuccessDelivery';
 import Input from '../component/input';
 import Button from '../component/Button';
 import { usePathname, useRouter } from 'next/navigation';
+import { getSync } from '../fetch/get/fetch';
 
 
 export default function Page() {
@@ -71,6 +72,23 @@ export default function Page() {
             fetchData()
         }
     }, [cabang, page])
+
+    useEffect(() => {
+        const data = {
+            "page": 1,
+            "cabang": cabang
+        }
+        console.log(data, "ini datanya")
+        const fetch = async () => {
+            try {
+                const res = await getSync(data)
+                console.log(res)
+            } catch {
+
+            }
+        }
+        fetch()
+    }, [cabang])
 
     // ✅ Realtime listener for auto-refresh
     useEffect(() => {
