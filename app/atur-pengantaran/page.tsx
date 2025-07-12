@@ -122,7 +122,7 @@ export default function Page() {
             )`)
                 // .eq("tanggal_pengantaran", today)
                 .eq("cabang", cabang)
-                // .neq("status", "Selesai Pengantaran")
+                .neq("status", "Selesai Pengantaran")
                 .neq("driver", "Ambil Sendiri")
                 .order("order_id", { ascending: true })
                 .range(from, to);
