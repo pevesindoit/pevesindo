@@ -6,7 +6,11 @@ export async function fetchAccurateIds(data: any) {
   const ACCESS_TOKEN = process.env.ACCESS_TOKEN!;
   const SECRET = process.env.SECRET!;
   const SESSION_ID = process.env.SESSION_ID!; // Optional, depending on Accurate
+  // const timestamp = Date.now().toString();
+  // const date = getFormattedDate();
+
   const timestamp = Date.now().toString();
+  // const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const date = getFormattedDate();
 
   const signature = crypto

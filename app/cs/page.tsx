@@ -7,6 +7,7 @@ import DatePicker from "../component/DatePicker";
 import Input from "../component/input";
 import DropDown from "../component/DropDown";
 import Button from "../component/Button";
+import { getSync } from "../fetch/get/fetch";
 
 export default function Home() {
   const [data, setData] = useState<IMenu[]>([])
@@ -101,6 +102,21 @@ export default function Home() {
       console.log(error)
     }
   }
+  useEffect(() => {
+    const data = {
+      "page": 1,
+      "cabang": formData.cabang
+    }
+    const fetch = async () => {
+      try {
+        const res = await getSync(data)
+        console.log(res)
+      } catch {
+
+      }
+    }
+    fetch()
+  }, [formData?.cabang])
 
   const handleLocalChange = (e: React.ChangeEvent<HTMLInputElement>, id: number, field: string) => {
     const updated = data.map(item =>
