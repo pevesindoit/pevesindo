@@ -102,7 +102,7 @@ export default function Page() {
                 ket_nama
             )`)
                 // .eq("tanggal_pengantaran", today)
-                // .eq("cabang", cabang)
+                .eq("cabang", cabang)
                 .neq("status", "Selesai Pengantaran")
                 .eq("driver", "Ambil Sendiri")
                 .order("order_id", { ascending: true })
