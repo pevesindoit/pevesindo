@@ -5,6 +5,7 @@ import { CSS } from "@dnd-kit/utilities";
 import React, { useEffect, useState } from "react";
 import Button from "../Button";
 import DropDown from "../DropDown";
+import { getFormattedDate } from "@/app/function/dateFormater";
 
 const SortableItem = ({ item, index }: { item: any; index: number }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -107,7 +108,23 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
         }));
     };
 
-    console.log(save, "ini hasilnya")
+    const handleToday = async (e: any) => {
+        const date = getFormattedDate();
+        const { data: insertedSJ, error: sjError } = await supabase
+            .from("surat_jalan")
+            .update({
+                tanggal_pengantaran: date,          // replace with the actual date value
+                is_deliver: true     // replace with true/false or desired value
+            })
+            .eq("id", e)
+        console.log("today", insertedSJ)
+        if (sjError) {
+            console.error("Update error:", sjError);
+        } else {
+            console.log("Updated record:", insertedSJ);
+        }
+    }
+
     return (
         <div
             ref={setNodeRef}
@@ -207,6 +224,15 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
                             item.maps && (
                                 <a href={`${item.maps}`} target="_blank"
                                     rel="noopener noreferrer" className="md:text-[.8rem] bg-black text-white rounded-md px-[1rem] py-[.5rem] w-full text-center">Lihat Lokasi</a>
+                            )
+                        }
+                    </div>
+                    <div>
+                        {
+                            item.is_deliver !== true && (
+                                <Button onClick={(e) => handleToday(item.id)}>
+                                    Antar Hari ini
+                                </Button>
                             )
                         }
                     </div>
