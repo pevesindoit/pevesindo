@@ -15,6 +15,20 @@ export default function NavBar() {
 
     useEffect(() => {
         const email = localStorage.getItem("email");
+        const access = localStorage.getItem('sb-access-token');
+        const refresh = localStorage.getItem('sb-refresh-token');
+        console.log(access, refresh, "ulala")
+        if (!access || !refresh) {
+            Cookies.remove("sb-access-token");
+            Cookies.remove("sb-refresh-token");
+            Cookies.remove("user-type"); // also remove the type
+
+
+            // Optional: Clear localStorage
+            localStorage.removeItem("email");
+            localStorage.removeItem("type");
+            localStorage.removeItem("cabang");
+        }
         setUserName(email);
     }, [pathname]); // re-run on route change
 
