@@ -28,8 +28,9 @@ export default function NavBar() {
             localStorage.removeItem("email");
             localStorage.removeItem("type");
             localStorage.removeItem("cabang");
+        }else{
+            setUserName(email);
         }
-        setUserName(email);
     }, [pathname]); // re-run on route change
 
     const logOut = async () => {
