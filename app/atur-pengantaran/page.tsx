@@ -206,7 +206,7 @@ export default function Page() {
     return (
         <div className="py-[2rem]">
             <div className="">
-                <div className="w-full flex justify-center px-[1rem]">
+                <div className="w-full flex md:justify-center px-[1rem]">
                     <div className="w-[95%]">
                         <div className="flex">
                             <div className={`cursor-pointer px-[1rem] py-[.5rem] ${path === "/atur-pengantaran" ? "bg-green-600 text-white rounded-t-md" : ""}`}>
@@ -218,8 +218,8 @@ export default function Page() {
                         </div>
                     </div>
                 </div>
-                <div className="w-full justify-center flex">
-                    <div className="z-100 bg-white rounded-[10px] border border-[#E3E7EC] text-[.6rem] py-[2rem] w-[95%] px-[2rem] space-y-[2rem]">
+                <div className="md:w-full justify-center flex">
+                    <div className="z-100 bg-white rounded-[10px] border border-[#E3E7EC] text-[.6rem] py-[1rem] w-[95%] md:px-[2rem] px-[1rem]">
                         <div>
                             <h1 className="text-[1rem]">
                                 Atur Pengantaran
@@ -229,20 +229,22 @@ export default function Page() {
                                 <button className={`cursor-pointer py-[1rem] px-[1rem]  rounded-md ${driver === "ambil sendiri" ? "bg-black text-white" : "bg-gray-200 text-black"}`} onClick={() => handleChangeDriver("ambil sendiri")}>Ambil Sendiri</button>
                             </div>
                         </div>
-                        <DndContext
-                            sensors={sensors}
-                            collisionDetection={closestCenter}
-                            onDragEnd={handleDragEnd}
-                        >
-                            <SortableContext
-                                items={ordered.map((item) => item.id)}
-                                strategy={verticalListSortingStrategy}
+                        <div className="space-y-[2rem] w-[85%] md:w-full">
+                            <DndContext
+                                sensors={sensors}
+                                collisionDetection={closestCenter}
+                                onDragEnd={handleDragEnd}
                             >
-                                {ordered.map((item, index) => (
-                                    <SortableItem key={item.id} item={item} index={index} />
-                                ))}
-                            </SortableContext>
-                        </DndContext>
+                                <SortableContext
+                                    items={ordered.map((item) => item.id)}
+                                    strategy={verticalListSortingStrategy}
+                                >
+                                    {ordered.map((item, index) => (
+                                        <SortableItem key={item.id} item={item} index={index} />
+                                    ))}
+                                </SortableContext>
+                            </DndContext>
+                        </div>
                     </div>
                 </div>
             </div>

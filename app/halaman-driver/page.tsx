@@ -9,6 +9,7 @@ import { getDriver } from '../fetch/get/fetch';
 import pengantaran from '../data/pengantaran';
 import type from '../data/type';
 import Button from '../component/Button';
+import { getFormattedDate } from '../function/dateFormater';
 
 
 export default function Page() {
@@ -100,9 +101,7 @@ export default function Page() {
     const fetchData = async () => {
         const from = (page - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
-
-        const formattedDate = new Date().toISOString().split("T")[0];
-        const today = formattedDate.split("-").reverse().join("/");
+        const today = getFormattedDate;
 
         const { data, error } = await supabase
             .from("surat_jalan")
@@ -112,8 +111,9 @@ export default function Page() {
                 kode_barang,
                 jumlah_item,
                 ket_nama)`)
-            // .eq("tanggal_pengantaran", today)
+            .eq("tanggal_pengantaran", today)
             .eq("cabang", cabang)
+            .eq("is_deliver", true)
             .neq("status", "Selesai Pengantaran")
             .neq("driver", "Ambil Sendiri")
             .order("order_id", { ascending: true })

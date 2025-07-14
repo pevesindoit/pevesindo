@@ -16,7 +16,7 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
     const [driverLis, setDriverLis] = useState([
         "PEVESINDO CABANG HERTASNING",
         "PEVESINDO CABANG BADDOKA",
-        "PEVESINDO CABANG PARE-PARE",
+        "PEVESINDO CABANG PARE",
         "PEVESINDO CABANG BONE",
         // "PEVESINDO CABANG ",
     ])
@@ -229,7 +229,7 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
                     </div>
                     <div>
                         {
-                            item.is_deliver !== true && (
+                            item.is_deliver !== true && item.driver !== "Ambil Sendiri" && (
                                 <Button onClick={(e) => handleToday(item.id)}>
                                     Antar Hari ini
                                 </Button>
