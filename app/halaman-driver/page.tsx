@@ -101,7 +101,7 @@ export default function Page() {
     const fetchData = async () => {
         const from = (page - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
-        const today = getFormattedDate;
+        const today = getFormattedDate();
 
         const { data, error } = await supabase
             .from("surat_jalan")
@@ -119,7 +119,8 @@ export default function Page() {
             .order("order_id", { ascending: true })
             .range(from, to);
 
-        console.log(data)
+        console.log(today, "ini hasilnya")
+        console.log(data, "ini datanya")
 
         if (error) console.error("Fetch error", error);
         else setData(data || []);
