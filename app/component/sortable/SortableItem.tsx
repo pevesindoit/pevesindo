@@ -145,9 +145,9 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
             </button>
             <div className="w-full">
                 <div className="flex space-y-[1rem] w-full">
-                    {/* <h2 className="text-[1rem] font-bold">Nomor SO: {item.so_number}</h2> */}
+                    {/* <h2 className="text-[.7rem] font-bold">Nomor SO: {item.so_number}</h2> */}
                     <div className="flex justify-between items-center w-full">
-                        <h2 className="text-[1rem] font-bold">{item.driver === "Ambil Sendiri"
+                        <h2 className="text-[.7rem] font-bold">{item.driver === "Ambil Sendiri"
                             ? "Pengambilan"
                             : `${item.is_mutation ? "Mutasi" : "Pengantaran"}`}
                         </h2>
@@ -170,9 +170,11 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
 
                 <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isOpen ? "max-h-[1000px] opacity-100 scale-100" : "max-h-0 opacity-0 scale-[0.98]"
                     }`}>
-                    <div className="w-full md:p-2 p-[.1rem] space-y-1 md:text-[.8rem]">
-                        <div className="grid grid-cols-[20%_2%_1fr] items-start gap-y-1">
-                            <p>Pengantar</p>
+                    <div className="w-full md:p-2 p-[.1rem] space-y-1 md:text-[.8rem] text-[.6rem]">
+                        <div className="grid grid-cols-[45%_2%_1fr] items-start gap-y-1">
+                            <div className="flex items-center">
+                                <p>Pengantar</p>
+                            </div>
                             <p>:</p>
                             <p>{item.driver}</p>
 
@@ -180,7 +182,7 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
                             <p>:</p>
                             <p className="italic">{item.so_number}</p>
 
-                            <p>Customer Name</p>
+                            <p>Customer</p>
                             <p>:</p>
                             <p>{item.customer_name}</p>
 
@@ -196,11 +198,11 @@ const SortableItem = ({ item, index }: { item: any; index: number }) => {
                             <p>{item.tanggal_pengantaran}</p>
                         </div>
                     </div>
-                    <h1 className="text-[1rem] pt-[1rem]">Barang Yang Diantar</h1>
+                    <h1 className="text-[.7rem] pt-[1rem]">Barang Yang Diantar</h1>
                     <div className="space-y-[1rem] pl-[2rem]]">
                         {
                             detail?.map((item: any, index: any) => (
-                                <div className="grid grid-cols-[20%_2%_1fr] items-start gap-y-1 py-[1rem]" key={index} >
+                                <div className="grid grid-cols-[30%_2%_1fr] items-start gap-y-1 py-[1rem]" key={index} >
                                     <p>Nama Barang</p>
                                     <p>:</p>
                                     <p>{item.nama_barang}</p>
