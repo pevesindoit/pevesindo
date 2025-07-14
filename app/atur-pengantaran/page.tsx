@@ -20,6 +20,7 @@ import SortableItem from "../component/sortable/SortableItem";
 import { getSync } from "../fetch/get/fetch";
 import { usePathname, useRouter } from "next/navigation";
 import Button from "../component/Button";
+import LoadingTemplate from "../component/loading/loadingTemplate";
 
 export default function Page() {
     const [ordered, setOrdered] = useState<IPengantaran[]>([]);
