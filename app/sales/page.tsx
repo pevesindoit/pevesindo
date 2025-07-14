@@ -54,8 +54,10 @@ export default function Page() {
                 kode_barang,
                 jumlah_item,
                 ket_nama)`)
-            // .eq("tanggal_pengantaran", today)
+            .eq("tanggal_pengantaran", today)
             .eq("cabang", cabang)
+            .eq("is_deliver", true)
+            .neq("driver", "Ambil Sendiri")
             .neq("status", "Selesai Pengantaran")
             .order("order_id", { ascending: true })
             .range(from, to);
