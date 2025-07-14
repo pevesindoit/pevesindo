@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import NavBar from "./component/NavBar";
 import 'leaflet/dist/leaflet.css';
+import { Analytics } from "@vercel/analytics/next"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body
         className={`${inter.className} antialiased bg-[#F9FAFB]`}
       >
+        <Analytics />
         <NavBar />
         {children}
       </body>
