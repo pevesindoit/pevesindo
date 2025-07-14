@@ -269,7 +269,7 @@ export default function Page() {
                         <div className="grid md:grid-cols-2 gap-[1rem]">
                             {
                                 ordered.map((item: any, index) => (
-                                    <div key={index} className="w-full md:py-[1rem] md:px-[2.5rem] px-[1rem] space-y-1 md:text-[.8rem] border rounded-md">
+                                    <div key={index} className="w-full md:py-[1rem] md:px-[2.5rem] px-[1rem] py-[1rem] space-y-1 md:text-[.8rem] border rounded-md">
                                         <div className="grid grid-cols-[25%_2%_1fr] items-start gap-y-1 py-[1rem] ">
                                             <p>Sirat Jalan</p>
                                             <p>:</p>
