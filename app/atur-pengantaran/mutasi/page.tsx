@@ -102,9 +102,6 @@ export default function Page() {
 
             const nextOrderId = (maxOrder?.order_id || 0) + 1;
 
-            console.log(driver[id])
-            console.log(id)
-
             const payload = {
                 // id_so: mutation.id_mutasi || null,
                 customer_name: mutation.tujuan_mutasi,
@@ -244,6 +241,8 @@ export default function Page() {
             [id]: !prev[id],
         }));
     };
+
+    console.log(cabang, "ini cabangnya")
 
 
     return (

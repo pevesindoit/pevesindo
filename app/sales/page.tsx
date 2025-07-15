@@ -38,6 +38,7 @@ export default function Page() {
         }
     }, [setCabang])
 
+    console.log(cabang, "ini cabangnya")
     const fetchData = async () => {
         const from = (page - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;

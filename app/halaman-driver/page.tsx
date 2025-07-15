@@ -240,6 +240,9 @@ export default function Page() {
         }
     }
 
+    console.log(cabang, "ini cabangnya")
+
+
 
     return (
         <div className="py-[2rem]">
