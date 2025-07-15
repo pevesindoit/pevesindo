@@ -3,6 +3,7 @@ const typeUser = [
     "driver",
     "hrd",
     "gudang",
-    "sales"
+    "sales",
+    "cs"
 ]
 export default typeUser;

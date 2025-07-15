@@ -50,7 +50,7 @@ export default function MapLeaflet({ drivers, dropOffs }: Props) {
 
                 return (
                     <Marker
-                        key={`drop-${drop.id}`}
+                        key={`drop-${drop.id}-${index}`}
                         position={[drop.lat, drop.lng]}
                         icon={icon}
                     >

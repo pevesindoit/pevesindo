@@ -86,6 +86,9 @@ export default function Home() {
         case 'sales':
           router.push('/sales');
           break;
+        case 'cs':
+          router.push('/sales-counter');
+          break;
         case 'driver':
           router.push('/halaman-driver');
           break;
@@ -134,6 +137,9 @@ export default function Home() {
           break;
         case 'driver':
           router.push('/halaman-driver');
+          break;
+        case 'cs':
+          router.push('/sales-counter');
           break;
         default:
           router.push('/dashboard');
