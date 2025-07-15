@@ -351,7 +351,7 @@ export default function Page() {
                                         }
                                         {
                                             !item.status_terima && item.tujuan_mutasi === cabang && (
-                                                <Button onClick={() => getMutation(item.id, "Selesai Pengantaran")}>Mutasi Diterima</Button>
+                                                <Button onClick={() => getMutation(item.id, "Selesai Pengantaran")}>Barang Sudah Diambil</Button>
                                             )
                                         }
                                     </div>
