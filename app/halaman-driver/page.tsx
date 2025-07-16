@@ -102,6 +102,7 @@ export default function Page() {
         const from = (page - 1) * itemsPerPage;
         const to = from + itemsPerPage - 1;
         const today = getFormattedDate();
+        console.log(today, "hasilnya")
 
         const { data, error } = await supabase
             .from("surat_jalan")

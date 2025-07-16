@@ -64,8 +64,10 @@ export default function Page() {
         const { data, error } = await supabase
             .from("mutasi")
             .select("*")
+            // .eq("sumber_mutasi", cabang)
             .or(`sumber_mutasi.eq.${cabang},tujuan_mutasi.eq.${cabang}`)
             .is("status_terima", null) // ← this fixes the null comparison
+            .order("id")
             .range(from, to);
 
         if (error) console.error("Fetch error:", error);
@@ -83,15 +85,24 @@ export default function Page() {
         setDriver((prev) => ({ ...prev, [id]: value }));
     };
     const saveDriver = async (id: number) => {
+        // ✨ CHANGE 1: Get today's date in a database-friendly format (YYYY-MM-DD)
+        const today = getFormattedDate();
+
         if (activeDriverButtons[id]) {
             const { data: mutationData, error: mutationError } = await supabase
                 .from("mutasi")
                 .select()
-                .eq("id", id)
+                .eq("id", id);
 
-            console.log(mutationData)
+            // This line seems unused, so it can be removed
+            // const { data: mutationUpdate, error: mutationUpdateError } = await supabase.from("mutasi")
 
-            const mutation = mutationData?.[0]
+            const mutation = mutationData?.[0];
+
+            if (!mutation) {
+                console.error("❌ Mutation data not found for id:", id);
+                return;
+            }
 
             const { data: maxOrder } = await supabase
                 .from("surat_jalan")
@@ -103,10 +114,10 @@ export default function Page() {
             const nextOrderId = (maxOrder?.order_id || 0) + 1;
 
             const payload = {
-                // id_so: mutation.id_mutasi || null,
                 customer_name: mutation.tujuan_mutasi,
                 so_number: mutation.number,
-                tanggal_pengantaran: mutation.tanggal_transfer,
+                // ✨ CHANGE 2: Use today's date for the new delivery record
+                tanggal_pengantaran: today,
                 status: "Belum Loading",
                 alamat: `${mutation.tujuan_mutasi}`,
                 driver: driver[id],
@@ -122,9 +133,9 @@ export default function Page() {
 
             if (sjError || !insertedSJ?.[0]?.id) {
                 console.error("❌ Gagal insert surat jalan:", sjError);
-                return; // stop jika insert surat_jalan gagal
+                return;
             }
-
+            const todays = new Date().toISOString().split('T')[0];
             const suratJalanId = insertedSJ[0].id;
 
             const productPayloads = {
@@ -133,7 +144,8 @@ export default function Page() {
                 kode_barang: mutation.kode_barang || null,
                 jumlah_item: mutation.quantity || 0,
                 ket_nama: mutation.detail_item || null,
-                tanggal_pengantaran: mutation.tanggal_transfer || null
+                // ✨ CHANGE 3: Also use today's date here for consistency
+                tanggal_pengantaran: todays
             };
 
             const { error: productError } = await supabase
@@ -150,7 +162,8 @@ export default function Page() {
         try {
             const { data, error } = await supabase
                 .from("mutasi")
-                .update({ driver: newDriver })
+                // ✨ CHANGE 4: Add `tanggal_transfer` to the update object
+                .update({ driver: newDriver, tanggal_transfer: today })
                 .eq("id", id)
                 .select();
 
@@ -306,18 +319,21 @@ export default function Page() {
                                             <p>{item.driver && ":"}</p>
                                             <p>{item.driver && item.driver}</p>
 
-                                            <div className={`flex w-full justify-start ${item.driver ? "hidden" : ""}`}>
-                                                <button
-                                                    onClick={() => changeDriver(item.id)}
-                                                    className={`w-14 h-8 flex items-center rounded-full p-1 transition-colors duration-300 ${!activeDriverButtons[item.id] ? "bg-black" : "bg-gray-300"
-                                                        }`}
-                                                >
-                                                    <div
-                                                        className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${!activeDriverButtons[item.id] ? "translate-x-6" : "translate-x-0"
-                                                            }`}
-                                                    />
-                                                </button>
-                                            </div>
+                                            {
+                                                !item.driver && (
+                                                    <div className={`flex w-full justify-start ${item.driver ? "hidden" : ""}`}>
+                                                        <button
+                                                            onClick={() => changeDriver(item.id)}
+                                                            className={`w-14 h-8 flex items-center rounded-full p-1 transition-colors duration-300 ${!activeDriverButtons[item.id] ? "bg-black" : "bg-gray-300"
+                                                                }`}
+                                                        >
+                                                            <div
+                                                                className={`bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-300 ${!activeDriverButtons[item.id] ? "translate-x-6" : "translate-x-0"
+                                                                    }`}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                )}
                                             {/* <Button
                                                 className={`${!activeDriverButtons[item.id] ? "bg-gray-400" : ""}`}
                                                 onClick={() => changeDriver(item.id)}
@@ -326,7 +342,7 @@ export default function Page() {
                                             </Button> */}
                                         </div>
                                         {
-                                            !item.driver && item.tujuan_mutasi !== cabang && (
+                                            !item.driver && (
                                                 <div className="w-full grid grid-cols-1 gap-[.5rem]">
                                                     <div>
                                                         {activeDriverButtons[item.id] ? (
@@ -350,7 +366,7 @@ export default function Page() {
                                             )
                                         }
                                         {
-                                            !item.status_terima && item.tujuan_mutasi === cabang && (
+                                            item.driver && item.tujuan_mutasi === cabang && (
                                                 <Button onClick={() => getMutation(item.id, "Selesai Pengantaran")}>Barang Sudah Diambil</Button>
                                             )
                                         }

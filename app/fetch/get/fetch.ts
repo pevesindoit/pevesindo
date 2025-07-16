@@ -35,7 +35,7 @@ export const getSync = async (data: any) => {
 };
 export const getSyncMutation = async (data: any) => {
   try {
-    const res = await axios.post("/api/sync-mutasi", data);
+    const res = await axios.post("/api/sync-mutasi", { data });
     return res;
   } catch (error) {
     console.log("Failed to fetch organisations", error);
