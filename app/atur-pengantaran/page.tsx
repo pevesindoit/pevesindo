@@ -17,7 +17,7 @@ import {
     arrayMove,
 } from "@dnd-kit/sortable"; // Adjust path if needed
 import SortableItem from "../component/sortable/SortableItem";
-import { getSync } from "../fetch/get/fetch";
+import { getSync, getSyncReturn } from "../fetch/get/fetch";
 import { usePathname, useRouter } from "next/navigation";
 import Button from "../component/Button";
 import LoadingTemplate from "../component/loading/loadingTemplate";
@@ -69,6 +69,7 @@ export default function Page() {
         const fetch = async () => {
             try {
                 const res = await getSync(data)
+                await getSyncReturn(data)
                 console.log(res)
             } catch {
 

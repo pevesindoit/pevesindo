@@ -41,6 +41,14 @@ export const getSyncMutation = async (data: any) => {
     console.log("Failed to fetch organisations", error);
   }
 };
+export const getSyncReturn = async (data: any) => {
+  try {
+    const res = await axios.post("/api/sync-return", { data });
+    return res;
+  } catch (error) {
+    console.log("Failed to fetch organisations", error);
+  }
+};
 export const getDriver = async () => {
   try {
     const res = await axios.get("/api/get-driver");

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import supabase from "@/lib/db";
-import crypto from "crypto"; // Assuming this formats date as "DD/MM/YYYY"
-import { fetchReturn } from "@/app/function/return";
+import crypto from "crypto";
+import { getFormattedDate } from "@/app/function/dateFormater";
 import { fetchReturnDetail } from "@/app/function/fetchReturnDetail";
+import { fetchReturn } from "@/app/function/return";
 
 // Your warehouse map...
 const warehouseToCabangMap: Record<string, string> = {
@@ -14,28 +15,36 @@ const warehouseToCabangMap: Record<string, string> = {
   "GOOD STOCK - JENEPONTO": "PEVESINDO CABANG JENEPONTO",
   "Gudang Utama": "PEVESINDO CABANG JENEPONTO",
   "GUDANG GOWA": "PEVESINDO CABANG GOWA",
+  "GOOD STOCK - MAKASSAR": "PEVESINDO CABANG MAKASSAR",
+  "GOOD STOCK - MAROS": "PEVESINDO CABANG MAROS", // Example: Added another entry
 };
 
 // This helper function seems fine for getting quantity,
-// but for sales returns, `detailItem.quantity` is likely the most relevant.
+// but for sales returns, `detailItem.returnQuantity` is likely the most relevant.
 function getQuantity(detailItem: any): number | null {
-  return detailItem?.quantity ?? null;
+  return (
+    detailItem?.returnQuantity ?? // This is the most direct path for the provided SR JSON
+    detailItem?.quantity ?? // Fallback to general quantity if returnQuantity isn't there
+    detailItem?.receivedQuantity ?? // Fallback for transfers if needed
+    null
+  );
 }
 
 export async function POST(req: NextRequest) {
   const reqBody = await req.json();
-  const data = reqBody.data; // This 'data' likely contains parameters for fetching returns, like 'cabang'
+  const data = reqBody.data;
+
+  console.log(data, "ini datanya");
 
   try {
-    // Step 1: Fetch a list of sales returns based on the provided criteria (e.g., branch and date)
     const result = await fetchReturn(data);
-    const allSalesReturns = result?.d ?? []; // Renamed for clarity
+    console.log(result, "ini resultnya");
+    const allSalesReturns = result?.d ?? [];
 
     let recordsToUpsert = [];
     let skippedCount = 0;
 
     for (const salesReturnHeader of allSalesReturns) {
-      // Step 2: For each sales return header, fetch its detailed information
       const getDetail = await fetchReturnDetail(salesReturnHeader.id);
       const detail = getDetail?.d; // This 'detail' is the comprehensive sales return object
 
@@ -51,56 +60,42 @@ export async function POST(req: NextRequest) {
         continue;
       }
 
-      // **Removed NEW LOGIC: Check the status at the parent level.**
-      // This logic was for "itemTransferOutStatus" which is not present in Sales Return documents.
-      // Sales Return documents have 'approvalStatus' and 'returnStatusType'.
-      // If you need to skip based on status, consider `detail.approvalStatus` or `detail.returnStatusType`.
-      // For now, let's assume all fetched sales returns with items should be processed unless explicitly told to skip.
-
-      const customerShipAddress = detail.customer?.shipAddress?.address;
-      const customerBillAddress = detail.customer?.billAddress?.address;
-
-      // Determine the 'cabang' based on the `branchId` of the sales return
-      // We need to look up the branch name from the `branchId` if `branchName` is not directly available in `detail`.
-      // The `branchName` is available in the `fetchReturn` response, but not always directly in `fetchReturnDetail`.
-      // Let's use `salesReturnHeader.branchName` if available, otherwise assume a default mapping.
-      const sourceBranchName = salesReturnHeader.branchName || "Unknown Branch";
-      const cabang = warehouseToCabangMap[sourceBranchName] || sourceBranchName;
-
-      // For sales returns, `tujuan_mutasi` (destination of mutation/transfer) might not be a direct "warehouse" concept.
-      // It's a return FROM a customer, so 'tujuan_mutasi' might conceptually be the 'branch' or 'warehouse' it's returned to.
-      // In your original sales return JSON, the `detailItem[0].warehouse.name` indicates the warehouse *receiving* the return.
+      // Determine the 'cabang' (branch/warehouse) where the return is received
+      // This is the warehouse associated with the detail item in the sales return
       const destinationWarehouseName = detail.detailItem[0]?.warehouse?.name;
       const cabangTujuan =
         warehouseToCabangMap[destinationWarehouseName ?? ""] ??
         destinationWarehouseName;
 
+      // Extract customer name
+      const customerName = detail.customer?.name;
+
       for (const detailItem of detail.detailItem) {
         const quantity = getQuantity(detailItem);
-        const unitName = detailItem.itemUnit?.name ?? "unit";
-
-        // For sales returns, the 'tanggal_transfer' (transfer date) should be the sales return's transDate.
-        // 'sumber_mutasi' (source of mutation/transfer) is the customer.
-        // 'tujuan_mutasi' (destination of mutation/transfer) is the branch/warehouse receiving the return.
 
         const record = {
-          quantity: detailItem.item?.salesInvoiceDetail.returnQuantity,
-          cabang: cabangTujuan, // Warehouse receiving the return
-          invoice_code: detail.invoice?.number,
-          nama_costumer: customerShipAddress || customerBillAddress, // Customer's shipping or billing address
-          nama_sales: detailItem.salesmanName, // Salesman name from the detail item
-          nama_barang: detailItem.item?.name,
-          kode_barang: detailItem.item?.no,
-          tanggal_return: detail.transDateView,
+          // accurate_detail_id is crucial for `onConflict` but won't be saved as a column if not present in your schema.
+          // If you need unique identification in Supabase for upsert, you must have a column for it.
+          // Assuming you have a column named `accurate_detail_id` in Supabase, even if not listed in your query,
+          // as it's typically used for `onConflict`. If not, change `onConflict` to your actual PK.
+          // accurate_detail_id: detailItem.id, // Assuming this is your unique identifier for upserting rows
+
+          quantity: quantity, // From d.detailItem[0].returnQuantity
+          cabang: cabangTujuan, // Derived from d.detailItem[0].warehouse.name
+          invoice_code: detail.invoice?.number, // From d.invoice.number
+          nama_costumer: customerName, // From d.d.customer.name
+          nama_sales: detailItem.salesmanName, // From d.detailItem[0].salesmanName
+          nama_barang: detailItem.item?.name, // From d.detailItem[0].item.name
+          kode_barang: detailItem.item?.no, // From d.detailItem[0].item.no
+          tanggal_return: detail.transDateView, // From d.transDateView
         };
+
         recordsToUpsert.push(record);
       }
     }
 
     if (recordsToUpsert.length > 0) {
-      const { error } = await supabase.from("mutasi").upsert(recordsToUpsert, {
-        onConflict: "accurate_detail_id",
-      });
+      const { error } = await supabase.from("return").upsert(recordsToUpsert);
 
       if (error) {
         console.error("❌ Upsert failed:", error);
@@ -117,3 +112,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+// fetchReturn and fetchReturnDetail functions remain the same as previously provided
+// Assuming they are correctly fetching sales return list and detail from Accurate API.
+
+// --- fetchReturnDetail function (no change from previous refined version) ---

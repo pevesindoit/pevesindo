@@ -13,13 +13,7 @@ export async function fetchReturn(data: any) {
     .update(timestamp)
     .digest("base64");
 
-  console.log("ini date", date);
-
-  // Correct URL for fetching sales return list.
-  // Using filter.transDate.val[0]=${date} will filter for an exact date.
-  // If you need a date range, you'd use BETWEEN.
-  // The `data.cabang` is used here for filtering by branchName.
-  const url = `https://public.accurate.id/accurate/api/sales-return/list.do?fields=id,number,transDate,createdByUserName,branch,branchName&filter.branchName=${data.cabang}&filter.transDate.op=EQUAL&filter.transDate.val[0]=${date}&sp.pageSize=100`;
+  const url = `https://public.accurate.id/accurate/api/sales-return/list.do?fields=id,number,transDate,createdByUserName,branch,branchName&sp.pageSize=5`;
 
   try {
     const response = await fetch(url, {
@@ -44,7 +38,6 @@ export async function fetchReturn(data: any) {
     }
 
     const json = await response.json();
-    console.log("Fetched Sales Return List:", json); // Changed console log message
     return json;
   } catch (error) {
     console.error("Accurate API fetchReturn error:", error); // Changed error message
