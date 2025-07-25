@@ -35,10 +35,10 @@ export async function fetchReturnDetail(id: any) {
     }
 
     const json = await response.json();
-    console.log("Fetched Sales Return Detail:", json); // Added console log
+    // console.log("Fetched Sales Return Detail:", json); // Added console log
     return json;
   } catch (error) {
-    console.error("Accurate API fetchReturnDetail error:", error); // Changed error message
+    // console.error("Accurate API fetchReturnDetail error:", error); // Changed error message
     return { d: null }; // Return null data in case of error for a single detail fetch
   }
 }

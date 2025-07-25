@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
 
       const nextOrderId = (maxOrder?.order_id || 0) + 1;
 
+      // console.log(detail?.d, "uhhuy surat_jalan");
+      // console.log(detail, "ini detail return");
       const payload = {
         id_so: id,
         customer_name: detail?.d?.customer?.name || null,
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
         order_id: nextOrderId,
         cabang: cabang,
         is_mutation: false,
+        invoice_code: detail?.d?.processHistory?.[0].historyNumber,
       };
 
       const { data: insertedSJ, error: sjError } = await supabase

@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { getFormattedDate } from "./dateFormater";
+import { getDateXDaysBefore, getFormattedDate } from "./dateFormater";
 import { getFormattedDateMutation } from "./formatedDateMutation";
 
 export async function fetchReturn(data: any) {
@@ -7,13 +7,14 @@ export async function fetchReturn(data: any) {
   const SECRET = process.env.SECRET!;
   const timestamp = Date.now().toString();
   const date = getFormattedDate(); // Ensure this formats as "DD/MM/YYYY"
+  const threeDaysAgoFormattedDate = getDateXDaysBefore(date, 2);
 
   const signature = crypto
     .createHmac("sha256", SECRET)
     .update(timestamp)
     .digest("base64");
 
-  const url = `https://public.accurate.id/accurate/api/sales-return/list.do?fields=id,number,transDate,createdByUserName,branch,branchName&sp.pageSize=5`;
+  const url = `https://public.accurate.id/accurate/api/sales-return/list.do?fields=id,number,transDate,createdByUserName,branch&filter.transDate.op=BETWEEN&filter.transDate.val[0]=${threeDaysAgoFormattedDate}&filter.transDate.val[1]=${date}&filter.branchName=${data?.cabang}&sp.pageSize=100`;
 
   try {
     const response = await fetch(url, {
